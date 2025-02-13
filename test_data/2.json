@@ -1,0 +1,25 @@
+{
+    "country": "United States",
+    "institutionCode": "USNM",
+    "collectionCode": "PLANTS",
+    "catalogNumber": "01237442",
+    "scientificName": "Sidalcea asprella Greene",
+    "dateIdentified": "1930-05-20",
+    "eventDate": "1913-05-26/1913-06-08",
+    "county": "Calaveras",
+    "stateProvince": "California",
+    "locality": "Avery, Calaveras County. Calaveras Ranger Station, Stanislaus Forest",
+    "decimalLatitude": "38.191783",
+    "decimalLongitude": "-120.555323",
+    "minimumElevationInMeters": "1000",
+    "recordedBy": "W. W. Eggleston",
+    "recordNumber": "9132",
+    "identifiedBy": "Eva M. Fling Roush",
+    "basisOfRecord": "PreservedSpecimen",
+    "occurrenceID": "880748",
+    "preparations": "Herbarium Sheet",
+    "associatedSequences": "N/A",
+    "otherCatalogNumbers": "9/32",
+    "previousIdentifications": "N/A"
+  }
+  
