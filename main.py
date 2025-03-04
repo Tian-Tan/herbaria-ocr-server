@@ -1,15 +1,20 @@
 from fastapi import FastAPI
+from config.config import settings
 # other imports
 import os
 import json
 from fastapi import FastAPI, HTTPException, UploadFile, File
 import aiofiles
 
-app = FastAPI()
+app = FastAPI(title=settings.app_name)
 
 @app.get("/")
 def read_root():
-    return {"Message": "Hello World"}
+    return {"Message": "Hello World. This message indicates that this server is up and running.",
+            "Display name": settings.display_name,
+            "Model name": settings.model_name,
+            "Server version": settings.server_version,
+            "API version": settings.api_version}
 
 DATA_DIR = 'test_data'
 
