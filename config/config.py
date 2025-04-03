@@ -17,6 +17,8 @@ class Settings:
         self.api_version = config.get("api_version")
         self.host = config.get("host", "127.0.0.1")
         self.port = config.get("port", 8000)
+        self.azure_file_path = config.get("azure_file_path")
+        self.python_path = config.get("python_path")
 
 # Instantiate settings
 settings = Settings()

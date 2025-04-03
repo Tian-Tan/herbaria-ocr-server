@@ -3,8 +3,11 @@ from config.config import settings
 # other imports
 import os
 import json
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, Query
 import aiofiles
+import subprocess
+import requests
+from PIL import Image
 
 app = FastAPI(title=settings.app_name)
 
@@ -19,10 +22,9 @@ def read_root():
 DATA_DIR = 'test_data'
 
 @app.post("/evaluate/mock/{id}")
-async def output(id: int, file: UploadFile = File(...)):
-    # verify file type
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Uploaded file is not an image.")
+async def output(id: int, url: str = Query(...)):
+    # Verify that the url is received
+    print("Received URL:", url)
     
     # get filename
     filename = os.path.join(DATA_DIR, f"{id}.json")
@@ -36,3 +38,48 @@ async def output(id: int, file: UploadFile = File(...)):
         data = json.loads(contents)
     
     return data
+
+@app.post("/evaluate/azure")
+async def evaluate(url: str):
+    # Create a temporary file
+    temp_filename = 'temp.jpg'
+
+    # Download the image
+    def download_image():
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise Exception("Failed to download image")
+        with open(temp_filename, "wb") as f:
+            f.write(response.content)
+
+    try:
+        download_image()
+    except Exception as e:
+        os.remove(temp_filename)
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # Verify that the downloaded file is a valid image
+    try:
+        with Image.open(temp_filename) as img:
+            img.verify()
+    except Exception:
+        os.remove(temp_filename)
+        raise HTTPException(status_code=400, detail="Downloaded file is not a valid image")
+
+    # Downloaded file path
+    print("Downloaded image path:", temp_filename)
+
+    # Invoke azure file from spark-symbiota-ml
+    command = [
+        settings.python_path,       # e.g. "python"
+        settings.azure_file_path,   # path to your Azure script
+        temp_filename               # your temp file
+    ]
+
+    # Run the command, capturing stdout and stderr
+    azure_result = subprocess.run(command, capture_output=True, text=True)
+
+    # Clean up by deleting the temporary file
+    os.remove(temp_filename)
+
+    return azure_result.stdout

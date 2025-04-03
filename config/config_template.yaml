@@ -6,5 +6,7 @@ server_version: '1.0.0'
 api_version: '1.0.0'
 host: 127.0.0.1
 port: 8000
+python_path: ''
+azure_file_path: ''
 # tentative config options
 weight_location:
