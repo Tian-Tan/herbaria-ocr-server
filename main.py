@@ -3,11 +3,9 @@ from config.config import settings
 # other imports
 import os
 import json
-from fastapi import FastAPI, HTTPException, UploadFile, Query
+from fastapi import FastAPI, HTTPException, Query
 import aiofiles
-import subprocess
-import requests
-from PIL import Image
+import httpx
 
 app = FastAPI(title=settings.app_name)
 
@@ -40,46 +38,17 @@ async def output(id: int, url: str = Query(...)):
     return data
 
 @app.post("/evaluate/azure")
-async def evaluate(url: str):
-    # Create a temporary file
-    temp_filename = 'temp.jpg'
-
-    # Download the image
-    def download_image():
-        response = requests.get(url)
-        if response.status_code != 200:
-            raise Exception("Failed to download image")
-        with open(temp_filename, "wb") as f:
-            f.write(response.content)
-
+async def evaluate(url: str = Query(...)):
+    target_url = f"{settings.azure_route}?url={url}"
+    print("Target url:", target_url)
+    # Ascync calls ocr service
     try:
-        download_image()
+        async with httpx.AsyncClient() as client:
+            response = await client.post(target_url)
     except Exception as e:
-        os.remove(temp_filename)
-        raise HTTPException(status_code=400, detail=str(e))
-
-    # Verify that the downloaded file is a valid image
-    try:
-        with Image.open(temp_filename) as img:
-            img.verify()
-    except Exception:
-        os.remove(temp_filename)
-        raise HTTPException(status_code=400, detail="Downloaded file is not a valid image")
-
-    # Downloaded file path
-    print("Downloaded image path:", temp_filename)
-
-    # Invoke azure file from spark-symbiota-ml
-    command = [
-        settings.python_path,       # e.g. "python"
-        settings.azure_file_path,   # path to your Azure script
-        temp_filename               # your temp file
-    ]
-
-    # Run the command, capturing stdout and stderr
-    azure_result = subprocess.run(command, capture_output=True, text=True)
-
-    # Clean up by deleting the temporary file
-    os.remove(temp_filename)
-
-    return azure_result.stdout
+        raise HTTPException(status_code=500, detail=f"Error calling OCR service: {str(e)}")
+    
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="OCR service returned an error")
+    
+    return response.json()

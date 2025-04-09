@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  fastapi_app:
+  ocr_middleware:
     build:
       context: ..
       dockerfile: docker/Dockerfile
