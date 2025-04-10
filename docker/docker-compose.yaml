@@ -7,3 +7,9 @@ services:
       dockerfile: docker/Dockerfile
     ports:
       - "8000:8000"
+    networks:
+      - symbiota-network
+
+networks:
+  symbiota-network:
+    external: true
